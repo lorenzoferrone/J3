@@ -1,0 +1,9 @@
+.window-content {
+    height: 100%;
+    overflow: hidden;
+}
+
+.pane-sm {
+    max-width: 220px;
+    min-width: 200px;
+}

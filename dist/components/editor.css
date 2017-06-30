@@ -1,0 +1,38 @@
+.editorRoot {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    /*margin: 0;*/
+    border-width: 0px
+}
+
+
+.content {
+    background-color: rgba(217, 203, 160, 0.5);
+    /*border-left: 0px solid transparent;*/
+    font-size: 15pt;
+    font-family: 'Iowan Old Style';
+    text-align: justify;
+    color: rgb(156, 77, 0);
+    padding: 100px 250px;
+    flex: 1 1 auto;
+    overflow-y: auto;
+}
+
+
+.editorTitle {
+    background-color: rgba(217, 203, 160, 0.5);
+    border: 0px;
+    border-bottom: 1px solid #ddd;
+    height: 100px;
+    width: auto;
+    font-size: 30;
+    font-family: 'Iowan Old Style';
+    color: rgb(156, 77, 0);
+    text-align: center;
+    flex: 0 0 auto;
+}
+
+.editorTitle {
+    outline-width: 0;
+}

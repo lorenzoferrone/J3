@@ -1,0 +1,29 @@
+#editorRoot {
+    height: 100%;
+}
+
+.pane-sm {
+  max-width: 220px;
+  min-width: 200px;
+}
+
+footer {
+    opacity: 0.1
+}
+
+.DraftEditor-editorContainer {
+    background-color: rgba(217, 203, 160, 0.5);
+    border-left: .1px solid transparent;
+    font-size: 22;
+    font-family: 'Iowan Old Style';
+    color: rgb(156, 77, 0);
+    height: 100%;
+    padding: 100px 250px;
+    overflow-x: scroll;
+    position: relative;
+    text-align: justify;
+    /*z-index: 100*/
+}
+
+
+/*body {margin: 0}*/

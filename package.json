@@ -1,0 +1,11 @@
+{
+  "name": "EmptyProject",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "electron ."
+  },
+  "license": "ISC",
+  "dependencies": {
+    "draft-js-typeahead": "^0.1.1"
+  }
+}

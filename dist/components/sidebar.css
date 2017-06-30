@@ -1,0 +1,36 @@
+.sidebarRoot {
+    height: 100%;
+    overflow: auto;
+    border-right: solid 0px #ddd;
+}
+
+.element {
+    display: flex;
+}
+
+.deleteButton {
+    margin-left: auto;
+    position: relative;
+    top: 3px;
+    display: none !important;
+}
+
+.element:hover > .deleteButton {
+    display: inline !important;
+}
+
+.hidden {
+    display: none;
+}
+
+.deleteButton:hover {
+    color: red
+}
+
+.folder {
+    color: red
+}
+
+.activeFolder {
+    background-color: yellow;
+}
