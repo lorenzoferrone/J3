@@ -18,17 +18,13 @@ var _editor = require('./dist/components/editor');
 
 var _editor2 = _interopRequireDefault(_editor);
 
-var _sidebar = require('./dist/components/sidebar');
+var _sidebar = require('./dist/components/sidebar3');
 
 var _sidebar2 = _interopRequireDefault(_sidebar);
 
-var _sidebar3 = require('./dist/components/sidebar2');
+var _sidebarFile = require('./dist/components/sidebarFile');
 
-var _sidebar4 = _interopRequireDefault(_sidebar3);
-
-var _sidebar5 = require('./dist/components/sidebar3');
-
-var _sidebar6 = _interopRequireDefault(_sidebar5);
+var _sidebarFile2 = _interopRequireDefault(_sidebarFile);
 
 var _spotlight = require('./dist/components/spotlight');
 
@@ -65,13 +61,15 @@ var App = function (_Component) {
                     _react2.default.createElement(
                         'div',
                         { className: 'pane-group' },
-                        _react2.default.createElement(_sidebar6.default, null),
+                        _react2.default.createElement(_sidebar2.default, null),
+                        _react2.default.createElement(_sidebarFile2.default, null),
                         _react2.default.createElement(
                             'div',
                             { id: 'editorRoot', className: 'pane' },
                             _react2.default.createElement(_editor2.default, { ref: 'editorRoot' })
                         )
-                    )
+                    ),
+                    _react2.default.createElement(_spotlight2.default, null)
                 )
             );
         }

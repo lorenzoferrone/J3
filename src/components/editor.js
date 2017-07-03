@@ -11,8 +11,10 @@ import {keyMap} from './plugins/utils/keys'
 import Editor from 'draft-js-plugins-editor'
 import {connect} from 'react-redux'
 
-import {updateFileContent, updateFileTitle, newFile, newFolder, selectFile,
-        showSearch, showSidebar, saveOnFile} from '../model/reducers'
+import {updateFileContent, updateFileTitle, newFile, newFolder, selectFile, selectFolder,
+        showSearch, showSidebar} from '../model/actions'
+
+import {saveOnFile} from '../model/helpers'
 
 // PLUGINS
 import createMathjaxPlugin from 'draft-js-mathjax-plugin'
@@ -31,11 +33,11 @@ const { InlineToolbar } = inlineToolbarPlugin;
 const autoListPlugin = createAutoListPlugin()
 const mathjaxPlugin = createMathjaxPlugin({})
 
-const plugins = [autoListPlugin, linePlugin, inlineToolbarPlugin]
+const plugins = [mathjaxPlugin, autoListPlugin, linePlugin, inlineToolbarPlugin]
 
 import {link, linkStrategy} from './editor_link'
 
-import {getById} from '../model/helpers'
+// import {getById} from '../model/helpers'
 
 
 
@@ -43,10 +45,7 @@ class MyEditor extends Component {
 
     constructor(props) {
         super(props)
-        store.subscribe(() => saveOnFile(store.getState().data))
-        // store.subscribe(() => {
-        //     console
-        // })
+        store.subscribe(() => saveOnFile(store.getState()))
         this.props = props
 
         this.compositeDecorator = new CompositeDecorator([
@@ -56,14 +55,25 @@ class MyEditor extends Component {
             }
         ]);
 
-        this.state = {
-            editorState: EditorState.createEmpty(this.compositeDecorator)
+        try {
+            const content = convertFromRaw(props.data.get(props.selectedFile).content)
+            this.state = {
+                editorState: EditorState.createWithContent(content, this.compositeDecorator)
+            }
+        }
+        catch(err) {
+            console.log(err)
+            this.state = {
+                editorState: EditorState.createEmpty(this.compositeDecorator)
+            }
+        }
+
+        finally {
+            setTimeout(() => this.focus(), 10)
         }
     }
 
     componentWillReceiveProps({selectedFile, data}) {
-        console.log('props', data)
-
 
         if (selectedFile != this.props.selectedFile){
 
@@ -106,7 +116,7 @@ class MyEditor extends Component {
     }
 
     _updateTitle = (event) => {
-        const title = event.target.value
+        const title = event.target.value != ''? event.target.value : 'Untitled'
         this.props.updateTitle(this.props.selectedFile, title)
     }
 
@@ -149,13 +159,12 @@ class MyEditor extends Component {
         if (command == 'new-file'){
             let path
             if (this.props.selectedFolder == 'root') {
-                path = 'root'
+                path = ['root']
             }
             else {
                 path = this.props.data.get(this.props.selectedFolder).path
             }
             console.log('selected Folder', this.props.selectedFolder)
-            console.log('path', path, 'post')
             const action = this.props._newFile(path)
 
             this.props._selectFile(action.id)
@@ -164,8 +173,18 @@ class MyEditor extends Component {
         }
 
         if (command == 'new-folder'){
-            const action = this.props._newFolder()
-            this.props._selectFile(action.id)
+            let path
+            if (this.props.selectedFolder == 'root') {
+                path = ['root']
+            }
+            else {
+                path = this.props.data.get(this.props.selectedFolder).path
+            }
+            console.log('selected Folder', this.props.selectedFolder)
+            const action = this.props._newFolder(path)
+            this.props._selectFolder(action.id)
+
+            // this.props._selectFile(action.id)
             // this.refs.title.focus()
             // setTimeout(() => this.refs.title.select(), 100)
         }
@@ -182,10 +201,10 @@ class MyEditor extends Component {
     }
 
     render() {
-        console.log(this.props.selectedFile)
 
-        const title = getById(this.props.data, this.props.selectedFile).model.name
-        console.log(this.props.data)
+        // const title = getById(this.props.data, this.props.selectedFile).model.name
+        const title = this.props.data.get(this.props.selectedFile)?
+            this.props.data.get(this.props.selectedFile).name : 'Untitled'
 
         return (
             <div className='editorRoot'>
@@ -220,8 +239,9 @@ const mapDispatchToProps = (dispatch) => {
         updateFile: (id, content) => dispatch(updateFileContent(id, content)),
         updateTitle: (id, title) => dispatch(updateFileTitle(id, title)),
         _newFile: (path) => dispatch(newFile('Untitled', path)),
-        _newFolder: () => dispatch(newFolder()),
+        _newFolder: (path) => dispatch(newFolder('new folder', path)),
         _selectFile: (id) => dispatch(selectFile(id)),
+        _selectFolder: (id) => dispatch(selectFolder(id)),
         _showSearch: () => dispatch(showSearch(true)),
         _showSidebar: (bool) => dispatch(showSidebar(bool))
      }

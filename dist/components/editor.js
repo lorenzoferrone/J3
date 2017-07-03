@@ -26,7 +26,9 @@ var _draftJsPluginsEditor2 = _interopRequireDefault(_draftJsPluginsEditor);
 
 var _reactRedux = require('react-redux');
 
-var _reducers = require('../model/reducers');
+var _actions = require('../model/actions');
+
+var _helpers = require('../model/helpers');
 
 var _draftJsMathjaxPlugin = require('draft-js-mathjax-plugin');
 
@@ -54,8 +56,6 @@ var _linePlugin2 = _interopRequireDefault(_linePlugin);
 
 var _editor_link = require('./editor_link');
 
-var _helpers = require('../model/helpers');
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -79,7 +79,10 @@ var InlineToolbar = inlineToolbarPlugin.InlineToolbar;
 var autoListPlugin = (0, _draftJsAutolistPlugin2.default)();
 var mathjaxPlugin = (0, _draftJsMathjaxPlugin2.default)({});
 
-var plugins = [autoListPlugin, linePlugin, inlineToolbarPlugin];
+var plugins = [mathjaxPlugin, autoListPlugin, linePlugin, inlineToolbarPlugin];
+
+// import {getById} from '../model/helpers'
+
 
 var MyEditor = function (_Component) {
     _inherits(MyEditor, _Component);
@@ -106,7 +109,7 @@ var MyEditor = function (_Component) {
         };
 
         _this._updateTitle = function (event) {
-            var title = event.target.value;
+            var title = event.target.value != '' ? event.target.value : 'Untitled';
             _this.props.updateTitle(_this.props.selectedFile, title);
         };
 
@@ -149,12 +152,11 @@ var MyEditor = function (_Component) {
             if (command == 'new-file') {
                 var path = void 0;
                 if (_this.props.selectedFolder == 'root') {
-                    path = 'root';
+                    path = ['root'];
                 } else {
                     path = _this.props.data.get(_this.props.selectedFolder).path;
                 }
                 console.log('selected Folder', _this.props.selectedFolder);
-                console.log('path', path, 'post');
                 var action = _this.props._newFile(path);
 
                 _this.props._selectFile(action.id);
@@ -165,8 +167,17 @@ var MyEditor = function (_Component) {
             }
 
             if (command == 'new-folder') {
-                var _action = _this.props._newFolder();
-                _this.props._selectFile(_action.id);
+                var _path = void 0;
+                if (_this.props.selectedFolder == 'root') {
+                    _path = ['root'];
+                } else {
+                    _path = _this.props.data.get(_this.props.selectedFolder).path;
+                }
+                console.log('selected Folder', _this.props.selectedFolder);
+                var _action = _this.props._newFolder(_path);
+                _this.props._selectFolder(_action.id);
+
+                // this.props._selectFile(action.id)
                 // this.refs.title.focus()
                 // setTimeout(() => this.refs.title.select(), 100)
             }
@@ -183,11 +194,8 @@ var MyEditor = function (_Component) {
         };
 
         store.subscribe(function () {
-            return (0, _reducers.saveOnFile)(store.getState().data);
+            return (0, _helpers.saveOnFile)(store.getState());
         });
-        // store.subscribe(() => {
-        //     console
-        // })
         _this.props = props;
 
         _this.compositeDecorator = new _draftJs.CompositeDecorator([{
@@ -195,9 +203,21 @@ var MyEditor = function (_Component) {
             component: _editor_link.link
         }]);
 
-        _this.state = {
-            editorState: _draftJs.EditorState.createEmpty(_this.compositeDecorator)
-        };
+        try {
+            var content = (0, _draftJs.convertFromRaw)(props.data.get(props.selectedFile).content);
+            _this.state = {
+                editorState: _draftJs.EditorState.createWithContent(content, _this.compositeDecorator)
+            };
+        } catch (err) {
+            console.log(err);
+            _this.state = {
+                editorState: _draftJs.EditorState.createEmpty(_this.compositeDecorator)
+            };
+        } finally {
+            setTimeout(function () {
+                return _this.focus();
+            }, 10);
+        }
         return _this;
     }
 
@@ -209,7 +229,6 @@ var MyEditor = function (_Component) {
             var selectedFile = _ref.selectedFile,
                 data = _ref.data;
 
-            console.log('props', data);
 
             if (selectedFile != this.props.selectedFile) {
 
@@ -236,10 +255,8 @@ var MyEditor = function (_Component) {
         value: function render() {
             var _this3 = this;
 
-            console.log(this.props.selectedFile);
-
-            var title = (0, _helpers.getById)(this.props.data, this.props.selectedFile).model.name;
-            console.log(this.props.data);
+            // const title = getById(this.props.data, this.props.selectedFile).model.name
+            var title = this.props.data.get(this.props.selectedFile) ? this.props.data.get(this.props.selectedFile).name : 'Untitled';
 
             return _react2.default.createElement(
                 'div',
@@ -285,25 +302,28 @@ var mapStateToProps = function mapStateToProps(_ref2) {
 var mapDispatchToProps = function mapDispatchToProps(dispatch) {
     return {
         updateFile: function updateFile(id, content) {
-            return dispatch((0, _reducers.updateFileContent)(id, content));
+            return dispatch((0, _actions.updateFileContent)(id, content));
         },
         updateTitle: function updateTitle(id, title) {
-            return dispatch((0, _reducers.updateFileTitle)(id, title));
+            return dispatch((0, _actions.updateFileTitle)(id, title));
         },
         _newFile: function _newFile(path) {
-            return dispatch((0, _reducers.newFile)('Untitled', path));
+            return dispatch((0, _actions.newFile)('Untitled', path));
         },
-        _newFolder: function _newFolder() {
-            return dispatch((0, _reducers.newFolder)());
+        _newFolder: function _newFolder(path) {
+            return dispatch((0, _actions.newFolder)('new folder', path));
         },
         _selectFile: function _selectFile(id) {
-            return dispatch((0, _reducers.selectFile)(id));
+            return dispatch((0, _actions.selectFile)(id));
+        },
+        _selectFolder: function _selectFolder(id) {
+            return dispatch((0, _actions.selectFolder)(id));
         },
         _showSearch: function _showSearch() {
-            return dispatch((0, _reducers.showSearch)(true));
+            return dispatch((0, _actions.showSearch)(true));
         },
         _showSidebar: function _showSidebar(bool) {
-            return dispatch((0, _reducers.showSidebar)(bool));
+            return dispatch((0, _actions.showSidebar)(bool));
         }
     };
 };

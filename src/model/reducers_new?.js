@@ -9,23 +9,18 @@ import fs from 'fs'
 import {OrderedMap, fromJS} from 'immutable'
 import {genKey} from 'draft-js'
 import {combineReducers} from 'redux'
+import Freezer from 'freezer-js'
 
-const parsePath = (path) => {
 
-    if (path[0] == 'root'){
-        return path[1]
-    }
+const content = JSON.parse(fs.readFileSync('./data/db.json', 'utf8'))
 
-    let truePath = []
+const treeNodes = new Freezer(content)
 
-    for (var p of path.slice(1, -1)) {
-        console.log('elofpath', p)
-        truePath.push(p)
-        truePath.push('children')
-    }
-    return truePath
+console.log(treeNodes.getData())
 
-}
+
+// treeNodes = treeNodes.clone()
+
 
 
 // actions
@@ -66,21 +61,13 @@ export const updateFileTitle = (id, title) => {
     }
 }
 
-export const newFile = (title='Untitled', path=['root']) => {
+export const newFile = (title='Untitled', parentId='root') => {
     const id = genKey()
-    let newPath
-    if (path == 'root') {
-        newPath = [id]
-    }
-    else {
-        newPath = path.concat(['children', id])
-    }
-    console.log('newPath: ', newPath)
     return {
         type: 'new_file',
         id: id,
         name: title,
-        path: newPath
+        parentId: parentId
     }
 }
 
@@ -121,36 +108,18 @@ export const search = (string) => {
 }
 
 
-// initialState
-
-const content = JSON.parse(fs.readFileSync('./data/db.json', 'utf8'))
-
-// "deep conversion", trasforma anche i children in orderedMap,
-// ma tralascia gli internal di draftjs
-const mappedData = fromJS(
-    content,
-    (key, value, path) => {
-        if (key == 'children' || key.length == 0){
-            return OrderedMap(value)
-        }
-        else {
-            // console.log('v', value.__toJS(), Array.isArray(value))
-            return Array.isArray(value.__toJS()) ? value.toArray() : value.toObject()
-        }
-    }
-)
 
 
 const initialState = {
     selectedFile: "0",
     selectedFolder: 'root',
-    data: mappedData,
+    data: treeNodes,
     searchState: false
 }
 
 // save store on disk
 export const saveOnFile = (data) => {
-    const content = JSON.stringify(data)
+    const content = JSON.stringify(data.model)
     fs.writeFile('./data/db.json', content)
 }
 
@@ -168,9 +137,10 @@ const data = (state=initialState.data, action) => {
         case 'new_file':
             // devo modificare per creare file sotto altre cartelle.
             // return state.set(action.id, {name: action.name, content: undefined, id: action.id})
-            console.log('path:', action.path.slice(0, -1))
-            console.log(state.getIn(action.path.slice(0, -1)))
-            return state.setIn(action.path, {name: action.name, content: undefined, id: action.id, path: action.path})
+            console.log('parentFolder', action.parentId)
+            const newNode = {name: action.name, content: undefined, id: action.id}
+            return getById(clone(state), action.parentId).addChild(newNode)
+            // return state.setIn(action.path, {name: action.name, content: undefined, id: action.id, path: action.path})
 
         case 'delete_file':
             return state.delete(action.id)

@@ -8,9 +8,8 @@ import {appStore} from './dist/model/reducers'
 let store = createStore(appStore)
 
 import MyEditor from './dist/components/editor'
-import SidebarFile from './dist/components/sidebar'
-import SidebarFolder from './dist/components/sidebar2'
 import Sidebar from './dist/components/sidebar3'
+import SidebarFile from './dist/components/sidebarFile'
 import Spotlight from './dist/components/spotlight'
 
 
@@ -21,11 +20,12 @@ class App extends Component {
                 <div className="window-content">
                     <div className="pane-group">
                         <Sidebar />
+                        <SidebarFile />
                         <div id='editorRoot' className="pane">
                             <MyEditor ref='editorRoot'/>
                         </div>
                     </div>
-
+                    <Spotlight />
                 </div>
             </div>
         )

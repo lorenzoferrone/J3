@@ -2,7 +2,7 @@ import React, {Component} from 'react'
 import {render} from 'react-dom'
 
 import {connect} from 'react-redux'
-import {showSearch, search, selectFile} from '../model/reducers'
+import {showSearch, search, selectFile} from '../model/actions'
 
 import {keyMap} from './plugins/utils/keys'
 
@@ -63,8 +63,11 @@ class spotlight extends Component {
     render() {
         const hidden = this.props.searchState? '': ' hidden'
         const showResultsClass = this.state.showResults? '' : ' hidden'
+
         this.filteredNodes = this.props.nodes
-            .filter(node => node.name.toLowerCase().indexOf(this.props.searchString.toLowerCase()) > -1)
+            .filter(node => {
+                node.name.toLowerCase().indexOf(this.props.searchString.toLowerCase()) > -1
+            })
 
         this.list = this.filteredNodes
             .map((node, key, iter) => {

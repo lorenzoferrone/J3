@@ -5,8 +5,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.appStore = undefined;
 
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
 var _immutable = require('immutable');
 
 var _redux = require('redux');
@@ -27,23 +25,21 @@ var data = function data() {
 
     switch (action.type) {
         case 'update_file_content':
-            return state.set(action.id, _extends({}, state.get(action.id), { content: action.content }));
+            console.log('action', action.id, action.content);
+            return state.set(action.id, { content: action.content });
 
         case 'update_file_title':
-            return state.set(action.id, _extends({}, state.get(action.id), { name: action.name }));
+            console.log('actions', action.id, action.name);
+            return state.set(action.id, { name: action.name });
+        // return state.set(action.id, {...state.get(action.id), name: action.name})
 
         case 'new_file':
             // devo modificare per creare file sotto altre cartelle.
             // return state.set(action.id, {name: action.name, content: undefined, id: action.id})
 
             // calcolo del path
-            var path = (0, _helpers.computePath)(action.path, action.id);
-            console.log('path', path);
-            for (var i = 0; i < path.length; i++) {
-                console.log('ppp', state.getIn(path.slice(0, i)));
-            }
 
-            return state.setIn(path, { name: action.name, content: undefined, id: action.id, path: path });
+            return state.add({ name: action.name, content: undefined, id: action.id });
 
         case 'delete_file':
             return state.delete(action.id);

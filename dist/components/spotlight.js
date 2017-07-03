@@ -14,7 +14,7 @@ var _reactDom = require('react-dom');
 
 var _reactRedux = require('react-redux');
 
-var _reducers = require('../model/reducers');
+var _actions = require('../model/actions');
 
 var _keys = require('./plugins/utils/keys');
 
@@ -90,8 +90,9 @@ var spotlight = function (_Component) {
 
             var hidden = this.props.searchState ? '' : ' hidden';
             var showResultsClass = this.state.showResults ? '' : ' hidden';
+
             this.filteredNodes = this.props.nodes.filter(function (node) {
-                return node.name.toLowerCase().indexOf(_this2.props.searchString.toLowerCase()) > -1;
+                node.name.toLowerCase().indexOf(_this2.props.searchString.toLowerCase()) > -1;
             });
 
             this.list = this.filteredNodes.map(function (node, key, iter) {
@@ -155,13 +156,13 @@ var mapStateToProps = function mapStateToProps(_ref) {
 var mapDispatchToProps = function mapDispatchToProps(dispatch) {
     return {
         _hide: function _hide() {
-            return dispatch((0, _reducers.showSearch)(false));
+            return dispatch((0, _actions.showSearch)(false));
         },
         _search: function _search(string) {
-            return dispatch((0, _reducers.search)(string));
+            return dispatch((0, _actions.search)(string));
         },
         _select: function _select(id) {
-            return dispatch((0, _reducers.selectFile)(id));
+            return dispatch((0, _actions.selectFile)(id));
         }
     };
 };

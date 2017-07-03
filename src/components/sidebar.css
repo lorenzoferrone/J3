@@ -1,11 +1,22 @@
 .sidebarRoot {
     height: 100%;
     overflow: auto;
-    border-right: solid 0px #ddd;
+    border-right: solid 0.1px #ddd;
+}
+
+.list-group-item {
+    padding-top: 8px;
+    padding-bottom: 0px;
+    border-top-width: 0px;
+}
+
+.list-group {
+    padding-left: 10px
 }
 
 .element {
     display: flex;
+    z-index: 10;
 }
 
 .deleteButton {
@@ -27,10 +38,33 @@
     color: red
 }
 
-.folder {
-    color: red
+
+
+/*.active {
+    background: #2c313a;
+    color: white;
+    box-sizing: border-box;
+}*/
+
+.active::before, .activeFile::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 200px;
+    height:19px;
+    background: rgba(100, 100, 100, 0.3);
+    color: white;
+    box-sizing: border-box;
+    vertical-align: middle;
 }
 
-.activeFolder {
-    background-color: yellow;
+.activeFile::before {
+    left: 200;
+    width: 200px;
+    background: rgba(100, 100, 100, 0.3);
+}
+
+
+.rename {
+    display: none;
 }
