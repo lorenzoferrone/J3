@@ -9,6 +9,9 @@ import {selectFile, selectFolder, selectNode, deleteFile} from '../model/actions
 import fs from 'fs'
 import dirTree from 'directory-tree'
 
+const {remote} = require('electron')
+const {Menu, MenuItem} = remote
+
 
 const nodeComponent = (nodes, node, onNodeClick, selectedFileId, _deleteFile) => {
     const active = node.id == selectedFileId ? 'activeFile' : ''
@@ -17,23 +20,52 @@ const nodeComponent = (nodes, node, onNodeClick, selectedFileId, _deleteFile) =>
     const deleteNode = (e) => {
         console.log(e)
         if (node.id == selectedFileId) {
-            console.log('cancellando il file ativo')
+            console.log('cancellando il file attivo')
             // seleziono un file fittizio vuoto
-            onNodeClick('0')
-            _deleteFile(node.id)
+            // ... va pensata meglio sta cosa...
+            // onNodeClick('0')
+            if (nodes.get(node.path.slice(-2, -1)[0]).children.filter(childId => !nodes.get(childId).hasOwnProperty('children')).filter(childId => childId != node.id).length > 0) {
+                onNodeClick(nodes.get(node.path.slice(-2, -1)[0])
+                    .children
+                    .filter(childId => !nodes.get(childId).hasOwnProperty('children'))
+                    .filter(childId => childId != node.id)[0]
+                )
+            }
+            else {
+                console.log('non è rimasto niente')
+                onNodeClick('0')
+            }
         }
-        else {
-            _deleteFile(node.id)
-        }
+        _deleteFile(node.id)
 
         e.stopPropagation()
     }
 
+
+    const menu = new Menu()
+    menu.append(new MenuItem({
+        label: 'Export note',
+        click: () => {
+            console.log('exporting')
+        }
+    }))
+
+    menu.append(new MenuItem({type: 'separator'}))
+
+    menu.append(new MenuItem({
+        label: 'Delete note',
+        click() {
+            console.log('deleting', node.id);
+        }
+    }))
+
+
     return (
         <div>
         <li className= {"list-group-item"} >
-            <div className={`element ${active}`}
-                onClick = {(e) => onNodeClick(node.id)}>
+            <div className={`elementfile ${active}`}
+                onClick = {(e) => onNodeClick(node.id)}
+                onContextMenu={(e) => menu.popup(remote.getCurrentWindow())}>
                 <span>
                     {node.name}
                 </span>
@@ -55,7 +87,7 @@ const sidebar = ({nodes, visible, onNodeClick, selectedFileId, selectedFolderId,
 
     const hidden = visible? '': ' hidden'
     return (
-        <div className={`sidebarRoot pane-sm sidebar ${hidden}`}>
+        <div className={`sidebarRootFile pane-sm sidebar ${hidden}`}>
             <ul className='list-group'>
                 {list}
             </ul>

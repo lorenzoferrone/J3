@@ -6,6 +6,7 @@
   },
   "license": "ISC",
   "dependencies": {
+    "draft-js-plugins-editor": "^2.0.0-rc8",
     "draft-js-typeahead": "^0.1.1"
   }
 }

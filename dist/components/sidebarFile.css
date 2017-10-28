@@ -1,8 +1,11 @@
-.sidebarRoot {
+.sidebarRootFile {
     height: 100%;
     overflow: auto;
-    border-right: solid 0.1px #ddd;
+    border-right: solid 0px #ddd;
+    font: caption;
+    line-height: 1.6;
 }
+
 
 .list-group-item {
     padding: 0px;
@@ -15,22 +18,22 @@
     padding-left: 10px
 }
 
-.element {
-    margin-top: 6px;
-    margin-bottom: 6px;
+.elementfile {
+    margin-top: 10px;
+    margin-bottom: 10px;
     display: flex;
     z-index: 10;
 }
 
-
 .deleteButton {
     margin-left: auto;
+    right: 10px;
+    top: 0px;
     position: relative;
-    top: 3px;
     display: none !important;
 }
 
-.element:hover > .deleteButton {
+.elementfile:hover > .deleteButton {
     display: inline !important;
 }
 
@@ -45,21 +48,15 @@
 
 
 /*nota: height è 19 + 2*transform, e transform è il padding su element (top e bottom)*/
-.active::before {
-    transform: translate(0px, -6px);
+.activefile::before {
+    transform: translate(0px, -10px);
     content: '';
     position: absolute;
-    left: 0;
+    height: 39px;
+    background: rgba(100, 100, 100, 0.3);
+    left: 200;
     width: 200px;
-    height: 31px;
-    background: rgba(17, 90, 213, 0.3);
     color: white;
     box-sizing: border-box;
     /*vertical-align: middle;*/
-}
-
-
-
-.rename {
-    display: none;
 }

@@ -44,21 +44,59 @@ const data = (state=initialState.data, action) => {
             if (newPath_delete.length > 1){
                 console.log('o', newPath_delete, parent_delete)
                 console.log(state.get(parent_delete))
-                const index = state.get(parent_delete).children.indexOf(action.id)
-                console.log(state.get(parent_delete).children)
-                const newChildren = state.get(parent_delete)
+                if (state.get(parent_delete) != undefined) {
+                    const index = state.get(parent_delete).children.indexOf(action.id)
+                    console.log(state.get(parent_delete).children)
+                    const newChildren = state.get(parent_delete)
+                        .children
+                        .filter(child => child != action.id)
+                    console.log(newChildren)
+                    state = state.set(
+                        parent_delete,
+                        {
+                            ...state.get(parent_delete),
+                            children: newChildren
+                        }
+                    )
+                }
+
+            }
+            return state.delete(action.id)
+
+        case 'delete_folder':
+            // per cancellare una cartella devo fare varie cose:
+            // * cancellare il nodo relativo alla cartella
+            // * cancellare i riferimenti al nodo da parte di ogni antecedente (cioè il padre)
+            // * cancellare o rilocare tutti i figli (ricorsivamente)
+
+            // i primi due punti sono uguali al cancellamento di un file
+
+            const folderToDelete = state.get(action.id)
+
+            const newPath_delete_ = state.get(action.id).path
+            const parent_delete_ = newPath_delete_.slice(-2)[0]
+            if (newPath_delete_.length > 1){
+                const index_ = state.get(parent_delete_).children.indexOf(action.id)
+                const newChildren_ = state.get(parent_delete_)
                     .children
                     .filter(child => child != action.id)
-                console.log(newChildren)
                 state = state.set(
-                    parent_delete,
+                    parent_delete_,
                     {
-                        ...state.get(parent_delete),
-                        children: newChildren
+                        ...state.get(parent_delete_),
+                        children: newChildren_
                     }
                 )
 
             }
+            // qua implemento il terzo punto (cancello tutti i discendenti)
+
+            // tutti i nodi che hanno nel path l'id della cartella che sto cancellando (quindi sono suoi discendenti)
+            const references = state.filter(node => node.path.includes(action.id))
+            console.log(action.id)
+            references.map(r => console.log(r))
+            references.forEach(r => console.log(state = state.delete(r.id)))
+
             return state.delete(action.id)
 
         case 'new_folder':

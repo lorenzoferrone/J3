@@ -50,7 +50,6 @@ class spotlight extends Component {
     __search = () => {
         this.setState({selectedNodeIndex: 0})
         this.props._search(this.textInput.value)
-        console.log(this.textInput.value)
         if (this.textInput.value != ''){
             this.setState({showResults: true})
         }
@@ -64,10 +63,10 @@ class spotlight extends Component {
         const hidden = this.props.searchState? '': ' hidden'
         const showResultsClass = this.state.showResults? '' : ' hidden'
 
+
         this.filteredNodes = this.props.nodes
-            .filter(node => {
-                node.name.toLowerCase().indexOf(this.props.searchString.toLowerCase()) > -1
-            })
+            .filter(node => node.name.toLowerCase().indexOf(this.props.searchString.toLowerCase()) > -1)
+
 
         this.list = this.filteredNodes
             .map((node, key, iter) => {
@@ -82,7 +81,6 @@ class spotlight extends Component {
             }
         )
 
-
         return (
             <div onClick={this.close} className={'sfondo' + hidden}>
                 <div className='mymodal' onClick={(event) => event.stopPropagation()}>
@@ -94,9 +92,9 @@ class spotlight extends Component {
                            />
 
                        <div className={'results' + showResultsClass}>
-                         <ul className='list-group'>
-                            {this.list}
-                        </ul>
+                           <ul className='list-group'>
+                               {this.list}
+                           </ul>
                      </div>
                 </div>
             </div>

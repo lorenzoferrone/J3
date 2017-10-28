@@ -64,6 +64,14 @@ export const deleteFile = (id) => {
     }
 }
 
+export const deleteFolder = (id) => {
+    return {
+        type: 'delete_folder',
+        id: id
+    }
+}
+
+
 export const showSearch = (bool) => {
     return {type: 'show_search', bool}
 }

@@ -3,7 +3,7 @@ var bw = require('electron').BrowserWindow
 var ipc = require('electron').ipcMain
 var fs = require('fs')
 
-app.on('ready', function(){
+app.on('ready', () => {
     mw = new bw({
         width: 1300,
         height: 750,
@@ -12,5 +12,4 @@ app.on('ready', function(){
     mw.openDevTools();
 
     return mw
-});
-app.commandLine.appendSwitch('enable-javascript-harmony')
+})

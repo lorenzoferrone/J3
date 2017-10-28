@@ -3,8 +3,10 @@ import fs from 'fs'
 import React, {Component} from 'react'
 import {render} from 'react-dom'
 import {EditorState, CompositeDecorator, convertToRaw, convertFromRaw,
-        getDefaultKeyBinding, KeyBindingUtil} from 'draft-js'
+        getDefaultKeyBinding, KeyBindingUtil, RichUtils, Modifier} from 'draft-js'
 const {hasCommandModifier, isOptionKeyCommand} = KeyBindingUtil;
+
+import {convertToHTML} from 'draft-convert'
 
 import {keyMap} from './plugins/utils/keys'
 
@@ -24,8 +26,11 @@ import createImagePlugin from 'draft-js-image-plugin';
 import createSideToolbarPlugin from 'draft-js-side-toolbar-plugin';
 import createLinePlugin from './plugins/linePlugin'
 
-const toolbarPlugin = createSideToolbarPlugin();
+import createBlockBreakoutPlugin from './plugins/my_breakout'
 
+
+const toolbarPlugin = createSideToolbarPlugin();
+const blockBreakoutPlugin = createBlockBreakoutPlugin()
 const linePlugin = createLinePlugin()
 const imagePlugin = createImagePlugin();
 const inlineToolbarPlugin = createInlineToolbarPlugin();
@@ -33,11 +38,17 @@ const { InlineToolbar } = inlineToolbarPlugin;
 const autoListPlugin = createAutoListPlugin()
 const mathjaxPlugin = createMathjaxPlugin({})
 
-const plugins = [mathjaxPlugin, autoListPlugin, linePlugin, inlineToolbarPlugin]
+// c'è un qualche problema con l'ordine di caricamento...oppure un plugin rompe gli altri
+// se c'è math autolist non va (se invece autolist è prima sembra andare)
+const plugins = [] //, autoListPlugin. mathjaxPlugin, linePlugin, blockBreakoutPlugin]
 
 import {link, linkStrategy} from './editor_link'
 
 // import {getById} from '../model/helpers'
+
+const {dialog} = require('electron').remote
+
+
 
 
 
@@ -45,7 +56,6 @@ class MyEditor extends Component {
 
     constructor(props) {
         super(props)
-        store.subscribe(() => saveOnFile(store.getState()))
         this.props = props
 
         this.compositeDecorator = new CompositeDecorator([
@@ -56,7 +66,8 @@ class MyEditor extends Component {
         ]);
 
         try {
-            const content = convertFromRaw(props.data.get(props.selectedFile).content)
+            const content = props.data.get(props.selectedFile).content
+            console.log(content)
             this.state = {
                 editorState: EditorState.createWithContent(content, this.compositeDecorator)
             }
@@ -73,13 +84,13 @@ class MyEditor extends Component {
         }
     }
 
-    componentWillReceiveProps({selectedFile, data}) {
-
-        if (selectedFile != this.props.selectedFile){
-
-            console.log('loading: ', selectedFile)
+    loadFile(selectedFile, selectedFolder, data) {
+        // metto qua la logica che stava dentro componentWillReceiveProps
+        // prova a caricare il file ID, se non riesce crea un file vuoto
+        console.log('loading: ', selectedFile)
+        if (selectedFile != '0') {
             try {
-                const content = convertFromRaw(data.get(selectedFile).content)
+                const content = data.get(selectedFile).content
                 this.setState({
                     editorState: EditorState.createWithContent(content, this.compositeDecorator)
                 })
@@ -95,24 +106,40 @@ class MyEditor extends Component {
                 setTimeout(() => this.focus(), 10)
             }
         }
+    }
 
-
+    componentWillReceiveProps({selectedFile, selectedFolder, data, _selectFile}) {
+        if (selectedFile != this.props.selectedFile){
+            this.loadFile(selectedFile, selectedFolder, data)
+        }
     }
 
     onChange = (editorState) => {
         this.setState({editorState})
-        if (this.props.selectedFile != 0) {
+        if (this.props.selectedFile != '0') {
+            console.log(editorState.getCurrentContent().getFirstBlock().getText())
+            // forse dovrei fare in modo di debouncare -.- questa chiamata
             this.saveFile()
         }
     }
 
-    focus = () => {
-        this.refs.editor.focus()
-    }
+    focus = () => this.refs.editor.focus()
+
+    focusTitle = () => this.refs.title.focus()
 
     saveFile = () => {
-        const data = convertToRaw(this.state.editorState.getCurrentContent())
+        const data = this.state.editorState.getCurrentContent()
         this.props.updateFile(this.props.selectedFile, data)
+    }
+
+    exportFile = () => {
+        const html = convertToHTML(this.state.editorState.getCurrentContent())
+        const title = this.props.data.get(this.props.selectedFile).name
+        console.log(title)
+        dialog.showSaveDialog(
+            {defaultPath: title},
+            (fileName) => fs.writeFile(fileName + ".html", html, () => console.log('exported'))
+        )
     }
 
     _updateTitle = (event) => {
@@ -121,20 +148,12 @@ class MyEditor extends Component {
     }
 
     keyBindingFn = (e) => {
-        if (keyMap(e) == 'F' && hasCommandModifier(e)) {
-            return 'show-search'
-        }
-
-        if (keyMap(e) == 'BACK_SLASH' && hasCommandModifier(e)) {
-            return 'toggle-sidebar'
+        if (keyMap(e) == 'H' && hasCommandModifier(e)) {
+            return 'header'
         }
 
         if (keyMap(e) == 'W' && hasCommandModifier(e)) {
             return 'save-file'
-        }
-
-        if (keyMap(e) == 'N' && hasCommandModifier(e)) {
-            return 'new-file'
         }
 
         if (keyMap(e) == 'N' && isOptionKeyCommand(e)) {
@@ -147,30 +166,42 @@ class MyEditor extends Component {
     }
 
     handleKeyCommand = (command) => {
-        if (command == 'load-file'){
-            this.loadFile('./data/asd.json')
+
+        const newState = RichUtils.handleKeyCommand(this.state.editorState, command);
+            if (newState) {
+                this.onChange(newState);
+                return 'handled';
+        }
+
+        if (command == 'header') {
+            this.onChange(RichUtils.toggleBlockType(this.state.editorState, 'header-three'))
             return 'handled'
         }
+
+        // if (command == 'load-file'){
+        //     this.loadFile('./data/asd.json')
+        //     return 'handled'
+        // }
 
         if (command == 'save-file'){
             this.saveFile()
         }
 
-        if (command == 'new-file'){
-            let path
-            if (this.props.selectedFolder == 'root') {
-                path = ['root']
-            }
-            else {
-                path = this.props.data.get(this.props.selectedFolder).path
-            }
-            console.log('selected Folder', this.props.selectedFolder)
-            const action = this.props._newFile(path)
-
-            this.props._selectFile(action.id)
-            this.refs.title.focus()
-            setTimeout(() => this.refs.title.select(), 100)
-        }
+        // if (command == 'new-file'){
+        //     let path
+        //     if (this.props.selectedFolder == 'root') {
+        //         path = ['root']
+        //     }
+        //     else {
+        //         path = this.props.data.get(this.props.selectedFolder).path
+        //     }
+        //     console.log('selected Folder', this.props.selectedFolder)
+        //     const action = this.props._newFile(path)
+        //
+        //     this.props._selectFile(action.id)
+        //     this.refs.title.focus()
+        //     setTimeout(() => this.refs.title.select(), 100)
+        // }
 
         if (command == 'new-folder'){
             let path
@@ -180,23 +211,34 @@ class MyEditor extends Component {
             else {
                 path = this.props.data.get(this.props.selectedFolder).path
             }
-            console.log('selected Folder', this.props.selectedFolder)
             const action = this.props._newFolder(path)
             this.props._selectFolder(action.id)
 
-            // this.props._selectFile(action.id)
+            this.props._selectFile('0')
             // this.refs.title.focus()
             // setTimeout(() => this.refs.title.select(), 100)
         }
+    }
 
-        if (command == 'show-search'){
-            this.props._showSearch()
+    onTab = (e) => {
+        // aggiungere controlli su tipo di block e sullo shift premuto...DONE
+        e.preventDefault()
+        let currentState = this.state.editorState
+        const blockType = RichUtils.getCurrentBlockType(currentState)
+
+        if (blockType == 'unstyled') {
+            let newContentState = Modifier.replaceText(
+                currentState.getCurrentContent(),
+                currentState.getSelection(),
+                '\t'
+            )
+            this.setState({
+                editorState: EditorState.push(currentState, newContentState, 'insert-characters')
+            })
         }
-
-        if (command == 'toggle-sidebar'){
-            console.log('toggling')
-            const visible = store.getState().sidebarState
-            this.props._showSidebar(!visible)
+        else {
+            let newContentState = RichUtils.onTab(e, currentState, 5)
+            this.onChange(newContentState)
         }
     }
 
@@ -206,25 +248,34 @@ class MyEditor extends Component {
         const title = this.props.data.get(this.props.selectedFile)?
             this.props.data.get(this.props.selectedFile).name : 'Untitled'
 
-        return (
-            <div className='editorRoot'>
-                <input className='editorTitle'
-                       value={title}
-                       ref='title'
-                       onChange={(event) => this._updateTitle(event) }
-                       />
-                <div className='content' onClick={() => this.refs.editor.focus()}>
-                <Editor editorState = {this.state.editorState}
-                    onChange = {this.onChange}
-                    plugins = {plugins}
-                    handleKeyCommand = {this.handleKeyCommand}
-                    keyBindingFn={this.keyBindingFn}
-                    ref='editor'
-                />
-                <InlineToolbar />
-        </div>
-            </div>
-        )
+        if (this.props.selectedFile != '0') {
+            return (
+                <div className='editorRoot'>
+                    <input className='editorTitle'
+                           value={title}
+                           ref='title'
+                           onChange={(event) => this._updateTitle(event) }
+                           />
+                    <div className='content' onClick={() => this.refs.editor.focus()}>
+                        <Editor editorState = {this.state.editorState}
+                            onChange = {this.onChange}
+                            plugins = {plugins}
+                            onTab = {this.onTab}
+                            handleKeyCommand = {this.handleKeyCommand}
+                            keyBindingFn={this.keyBindingFn}
+                            ref='editor'
+                        />
+                    </div>
+                </div>
+            )
+        }
+        else {
+            return (
+                <div className='editorRoot empty'>
+                    <span className='creaFile'>{"crea un file"}</span>
+                </div>
+            )
+        }
     }
 }
 

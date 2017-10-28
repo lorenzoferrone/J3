@@ -6,29 +6,40 @@
     border-width: 0px
 }
 
+.empty {
+    background-color: rgba(217, 203, 160, 0.3);
+    font-size: 40pt;
+    font-family: "Helvetica Neue"
+}
+
+.creaFile {
+    margin: auto;
+}
+
+
 
 .content {
-    background-color: rgba(217, 203, 160, 0.5);
-    /*border-left: 0px solid transparent;*/
-    font-size: 15pt;
-    font-family: 'Iowan Old Style';
+    background-color: rgba(217, 203, 160, 0.3);
+    border-left: 0px solid transparent;
+    font-size: 12pt;
+    font-family: 'Helvetica Neue';
     text-align: justify;
-    color: rgb(156, 77, 0);
-    padding: 100px 250px;
+    color: rgb(100, 77, 0);
+    padding: 50px 50px;
     flex: 1 1 auto;
     overflow-y: auto;
 }
 
 
 .editorTitle {
-    background-color: rgba(217, 203, 160, 0.5);
+    background-color: rgba(217, 203, 160, 0.3);
     border: 0px;
     border-bottom: 1px solid #ddd;
     height: 100px;
     width: auto;
     font-size: 30;
-    font-family: 'Iowan Old Style';
-    color: rgb(156, 77, 0);
+    font-family: 'Helvetica Neue';
+    color: rgb(100, 77, 0);
     text-align: center;
     flex: 0 0 auto;
 }
