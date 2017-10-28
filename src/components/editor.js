@@ -13,6 +13,8 @@ import {keyMap} from './plugins/utils/keys'
 import Editor from 'draft-js-plugins-editor'
 import {connect} from 'react-redux'
 
+import debounce from 'lodash/debounce';
+
 import {updateFileContent, updateFileTitle, newFile, newFolder, selectFile, selectFolder,
         showSearch, showSidebar} from '../model/actions'
 
@@ -67,13 +69,11 @@ class MyEditor extends Component {
 
         try {
             const content = props.data.get(props.selectedFile).content
-            console.log(content)
             this.state = {
                 editorState: EditorState.createWithContent(content, this.compositeDecorator)
             }
         }
         catch(err) {
-            console.log(err)
             this.state = {
                 editorState: EditorState.createEmpty(this.compositeDecorator)
             }
@@ -83,6 +83,7 @@ class MyEditor extends Component {
             setTimeout(() => this.focus(), 10)
         }
     }
+
 
     loadFile(selectedFile, selectedFolder, data) {
         // metto qua la logica che stava dentro componentWillReceiveProps
@@ -108,44 +109,47 @@ class MyEditor extends Component {
         }
     }
 
+
     componentWillReceiveProps({selectedFile, selectedFolder, data, _selectFile}) {
         if (selectedFile != this.props.selectedFile){
             this.loadFile(selectedFile, selectedFolder, data)
         }
     }
 
+
     onChange = (editorState) => {
-        this.setState({editorState})
         if (this.props.selectedFile != '0') {
-            console.log(editorState.getCurrentContent().getFirstBlock().getText())
-            // forse dovrei fare in modo di debouncare -.- questa chiamata
-            this.saveFile()
+            const data = editorState.getCurrentContent()
+            this.saveFile(data)
         }
+        this.setState({editorState})
     }
+
 
     focus = () => this.refs.editor.focus()
 
+
     focusTitle = () => this.refs.title.focus()
 
-    saveFile = () => {
-        const data = this.state.editorState.getCurrentContent()
-        this.props.updateFile(this.props.selectedFile, data)
-    }
+    // la funzione viene richiamata solo se non era stata chiamata nel secondo precedente
+    saveFile = debounce((data) => this.props.updateFile(this.props.selectedFile, data), 1000)
+
 
     exportFile = () => {
         const html = convertToHTML(this.state.editorState.getCurrentContent())
         const title = this.props.data.get(this.props.selectedFile).name
-        console.log(title)
         dialog.showSaveDialog(
             {defaultPath: title},
             (fileName) => fs.writeFile(fileName + ".html", html, () => console.log('exported'))
         )
     }
 
+
     _updateTitle = (event) => {
         const title = event.target.value != ''? event.target.value : 'Untitled'
         this.props.updateTitle(this.props.selectedFile, title)
     }
+
 
     keyBindingFn = (e) => {
         if (keyMap(e) == 'H' && hasCommandModifier(e)) {
@@ -165,10 +169,11 @@ class MyEditor extends Component {
         // return getDefaultKeyBinding(e)
     }
 
+
     handleKeyCommand = (command) => {
 
         const newState = RichUtils.handleKeyCommand(this.state.editorState, command);
-            if (newState) {
+        if (newState) {
                 this.onChange(newState);
                 return 'handled';
         }
