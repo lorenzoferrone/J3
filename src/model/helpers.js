@@ -2,7 +2,7 @@ import fs from 'fs'
 import {OrderedMap, fromJS, toJS} from 'immutable'
 import TreeModel from 'tree-model'
 
-import {convertToRaw, convertFromRaw} from 'draft-js'
+import {EditorState, convertToRaw, convertFromRaw} from 'draft-js'
 
 // const tree = new TreeModel()
 
@@ -12,7 +12,9 @@ export const initializeData = () => {
     const content = JSON.parse(fs.readFileSync('./data/db.json', 'utf8'))
     const mappedData = OrderedMap(content.data)
 
-    mappedData.forEach(node => {if (node.content != undefined) node.content = convertFromRaw(node.content)})
+    mappedData.forEach(node => {
+        if (node.content != undefined) node.content = convertFromRaw(node.content)
+    })
 
     const selectedFile = content.selectedFile != undefined ? content.selectedFile: '0'
     const selectedNode = content.selectedNode != undefined ? content.selectedNode: '0'
@@ -27,15 +29,14 @@ export const initializeData = () => {
     }
 }
 
+// const defaultState = {
+//     data: OrderedMap({data: })
+// }
+
 
 export const computePath = (path, id) => {
-    if (path[0] == ['root'] && path.length == 1){
-        return [id]
-    }
-    else {
-        return path.concat([id])
-    }
-
+    if (path[0] == ['root'] && path.length == 1) return [id]
+    else return path.concat([id])
 }
 
 

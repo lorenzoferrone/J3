@@ -132,8 +132,8 @@ const sidebar = ({
     _selectFolder, _selectFile, _newFolder, _deleteFolder}) => {
 
     const listFolder = nodes
-        .filter(node => node.path.length == 1)
         .filter(node => node.hasOwnProperty('children'))
+        .filter(node => node.path.length == 1)
         .map(node => nodeComponent(
             nodes, node, selectedFolderId, editingId, _editNode,
             _updateTitle, _selectFolder, _selectFile, _newFolder,

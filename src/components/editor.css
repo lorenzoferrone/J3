@@ -6,6 +6,11 @@
     border-width: 0px
 }
 
+.title-header {
+    font-size: 15pt;
+    font-weight: bold;
+}
+
 .empty {
     background-color: rgba(217, 203, 160, 0.3);
     font-size: 40pt;

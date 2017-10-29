@@ -62,7 +62,7 @@ const nodeComponent = (nodes, node, onNodeClick, selectedFileId, _deleteFile) =>
 
     return (
         <div>
-        <li className= {"list-group-item"} >
+        <li className= {"list-group-item-file"} >
             <div className={`elementfile ${active}`}
                 onClick = {(e) => onNodeClick(node.id)}
                 onContextMenu={(e) => menu.popup(remote.getCurrentWindow())}>
@@ -80,7 +80,9 @@ const nodeComponent = (nodes, node, onNodeClick, selectedFileId, _deleteFile) =>
 
 const sidebar = ({nodes, visible, onNodeClick, selectedFileId, selectedFolderId, _deleteFile}) => {
     const list = nodes
+        // prendo solo i file, non le cartelle
         .filter(node => !node.hasOwnProperty('children'))
+        // prendo i file nella cartella selezionata, o in root
         .filter(node => node.path.includes(selectedFolderId) || selectedFolderId == 'root')
         .map(node => nodeComponent(nodes, node, onNodeClick, selectedFileId, _deleteFile))
 

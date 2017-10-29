@@ -55,10 +55,11 @@ class App extends Component {
                 else {
                     path = this.props.data.get(this.props.selectedFolder).path
                 }
-                const action = this.props._newFile(path)
 
+                const action = this.props._newFile(path)
+                console.log('newfile', action.id)
                 this.props._selectFile(action.id)
-                this.refs.editorRoot.focusTitle()
+                // this.refs.editorRoot.focusTitle()
                 // setTimeout(() => this.refs.editortitle.select(), 100)
             }
         )

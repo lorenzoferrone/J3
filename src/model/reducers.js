@@ -2,6 +2,8 @@ import {OrderedMap, Map} from 'immutable'
 import {combineReducers} from 'redux'
 import {computePath, initializeData} from './helpers'
 
+import {EditorState, convertToRaw, convertFromRaw} from 'draft-js'
+
 //
 const initialState = initializeData()
 
