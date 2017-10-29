@@ -21,7 +21,10 @@ import {updateFileContent, updateFileTitle, newFile, newFolder, selectFile, sele
 import {saveOnFile} from '../model/helpers'
 
 // PLUGINS
-import createMathjaxPlugin from 'draft-js-mathjax-plugin'
+import createMathjaxPlugin from './plugins/draft-js-mathjax-plugin'
+
+import createEmojiPlugin from 'draft-js-emoji-plugin'
+
 import createAutoListPlugin from 'draft-js-autolist-plugin'
 import createInlineToolbarPlugin from 'draft-js-inline-toolbar-plugin';
 import createImagePlugin from 'draft-js-image-plugin';
@@ -40,9 +43,12 @@ const { InlineToolbar } = inlineToolbarPlugin;
 const autoListPlugin = createAutoListPlugin()
 const mathjaxPlugin = createMathjaxPlugin({})
 
+const emojiPlugin = createEmojiPlugin()
+const {EmojiSuggestions} = emojiPlugin
+
 // c'è un qualche problema con l'ordine di caricamento...oppure un plugin rompe gli altri
 // se c'è math autolist non va (se invece autolist è prima sembra andare)
-const plugins = [] //, autoListPlugin. mathjaxPlugin, linePlugin, blockBreakoutPlugin]
+const plugins = [linePlugin] //, autoListPlugin. mathjaxPlugin, linePlugin, blockBreakoutPlugin]
 
 import {link, linkStrategy} from './editor_link'
 
@@ -174,8 +180,8 @@ class MyEditor extends Component {
 
         const newState = RichUtils.handleKeyCommand(this.state.editorState, command);
         if (newState) {
-                this.onChange(newState);
-                return 'handled';
+            this.onChange(newState);
+            return 'handled';
         }
 
         if (command == 'header') {
@@ -266,10 +272,9 @@ class MyEditor extends Component {
                             onChange = {this.onChange}
                             plugins = {plugins}
                             onTab = {this.onTab}
-                            handleKeyCommand = {this.handleKeyCommand}
-                            keyBindingFn={this.keyBindingFn}
                             ref='editor'
                         />
+                        <EmojiSuggestions />
                     </div>
                 </div>
             )

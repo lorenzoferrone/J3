@@ -1,5 +1,4 @@
 import React, {Component} from 'react'
-// import {render} from 'react-dom'
 
 import {getDefaultKeyBinding, KeyBindingUtil} from 'draft-js';
 const {hasCommandModifier} = KeyBindingUtil;
@@ -19,10 +18,10 @@ const createLinePlugin = () => {
         if (keyMap(e) == 'S' && hasCommandModifier(e)) {
             return 'add-line'
         }
-        return getDefaultKeyBinding(e)
+        //return getDefaultKeyBinding(e)
     }
 
-    const handleBeforeInput = (char, {getEditorState, setEditorState}) => {
+    const handleBeforeInput = (char, editorState, {getEditorState, setEditorState}) => {
         const block = getCurrentBlock(getEditorState())
         const firstChar = block.text.charAt(0)
         if (firstChar == '-' && char == '-' && block.text.length == 1){
@@ -32,7 +31,7 @@ const createLinePlugin = () => {
 
     }
 
-    const handleKeyCommand = (command, {getEditorState, setEditorState}) => {
+    const handleKeyCommand = (command, editorState, {getEditorState, setEditorState}) => {
         if (command == 'add-line') {
             setEditorState(insertCustomAtomicBlock(getEditorState(), 'line'))
             return 'handled'

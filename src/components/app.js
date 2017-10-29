@@ -8,7 +8,7 @@ import {appStore} from './dist/model/reducers'
 let store = createStore(appStore)
 
 import MyEditor from './dist/components/editor'
-import Sidebar from './dist/components/sidebar3'
+import Sidebar from './dist/components/sidebarFolder'
 import SidebarFile from './dist/components/sidebarFile'
 import Spotlight from './dist/components/spotlight'
 
@@ -31,7 +31,9 @@ class App extends Component {
         super(props)
         this.props = props
 
-        remote.getCurrentWindow().on('close', () => saveOnFile(store.getState()))
+        remote.getCurrentWindow().once('close', () => saveOnFile(store.getState()))
+        // magari ci aggiungo anche un save periodico ogni 5 secondi??
+
 
         // shortcut binding
         Mousetrap.bindGlobal(
