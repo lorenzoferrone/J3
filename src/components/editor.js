@@ -16,7 +16,7 @@ import {connect} from 'react-redux'
 import debounce from 'lodash/debounce'
 import throttle from 'lodash/throttle'
 
-import {updateFileContent, updateFileTitle, newFile, newFolder, selectFile, selectFolder,
+import {updateFileContent, updateFileTitle, updateTimestamp, newFile, newFolder, selectFile, selectFolder,
         showSearch, showSidebar} from '../model/actions'
 
 import {saveOnFile} from '../model/helpers'
@@ -59,6 +59,27 @@ const {dialog} = require('electron').remote
 
 
 
+const MyEditor2 = ({editorState, onSaveEditor}) => {
+    return (
+        <div className='content' onClick={() => this.refs.editor.focus()}>
+            <Editor editorState = {editorState}
+                onChange = {onSaveEditor}
+                plugins = {[]}
+            />
+        </div>
+    )
+}
+
+
+
+
+const mapStateToProps2 = ({selectedFile, data}) => {
+    return {
+        editorState: data.get(selectedFile.content)
+    }
+}
+
+
 
 
 class MyEditor extends Component {
@@ -75,6 +96,7 @@ class MyEditor extends Component {
         ]);
 
         this.state = this.loadFile(props.selectedFile, props.selectedFolder, props.data)
+        setTimeout(() => this.focus(), 10)
     }
 
 
@@ -104,8 +126,6 @@ class MyEditor extends Component {
 
 
     loadFile(selectedFile, selectedFolder, data) {
-        // metto qua la logica che stava dentro componentWillReceiveProps
-        // prova a caricare il file ID, se non riesce crea un file vuoto
         try {
             const content = data.get(selectedFile).content
             return {editorState: EditorState.createWithContent(content, this.compositeDecorator)}
@@ -113,33 +133,46 @@ class MyEditor extends Component {
         catch(err) {
             return {editorState: EditorState.createEmpty(this.compositeDecorator)}
         }
-
-        finally {
-            setTimeout(() => this.focus(), 10)
-        }
-
-        this.saveFile.flush()
     }
 
 
     componentWillReceiveProps({selectedFile, selectedFolder, data, _selectFile}) {
-        if (selectedFile != this.props.selectedFile && selectedFile != '0'){
+        if (this.props.selectedFile == '0' && selectedFile != '0'){
+        }
+
+        if (selectedFile != this.props.selectedFile && selectedFile != '0' && this.props.selectedFile != '0'){
+            this.saveFile(this.state.editorState)
             this.setState(this.loadFile(selectedFile, selectedFolder, data))
+            setTimeout(() => this.focus(), 10)
         }
     }
 
 
     onChange = (editorState) => {
         if (this.props.selectedFile != '0') {
-            this.saveFile(editorState)
+            this.dsaveFile(editorState)
+        }
+        else {
+            const folder = this.props.selectedFolder
+            const file = this.props.selectedFile
+            console.log(folder, file)
+            let path
+            if (folder == 'root') {
+                path = ['root']
+            }
+            else {
+                path = this.props.data.get(folder).path
+            }
+            const action = this.props._newFile(path)
+            this.props._selectFile(action.id)
         }
         this.setState({editorState})
-        // const selectionState = editorState.getSelection()
-        // const contentState = editorState.getCurrentContent()
-        // const currentBlockKey = selectionState.getStartKey()
-        // if (currentBlockKey == editorState.getCurrentContent().getFirstBlock().getKey()) {
-        // this.props.updateTitle(this.props.selectedFile, this.updateTitle(editorState))
-        // }
+        const selectionState = editorState.getSelection()
+        const contentState = editorState.getCurrentContent()
+        const currentBlockKey = selectionState.getStartKey()
+        if (currentBlockKey == editorState.getCurrentContent().getFirstBlock().getKey()) {
+            this.props.updateTitle(this.props.selectedFile, this.updateTitle(editorState))
+        }
     }
 
 
@@ -152,12 +185,15 @@ class MyEditor extends Component {
     // la funzione viene richiamata solo se non era stata chiamata nel secondo precedente
     // il debounce da problemi, se edito velocemente e poi cambio file / chiudo
     // devo fare in modo che al cambio file venga chiamata obbligatoriamente
-
-    saveFile = debounce((editorState) => {
+    saveFile = (editorState) => {
         const data = editorState.getCurrentContent()
         this.props.updateFile(this.props.selectedFile, data)
-        this.props.updateTitle(this.props.selectedFile, this.updateTitle(editorState))
-    }, 100)
+        // this.props.updateTitle(this.props.selectedFile, this.updateTitle(editorState))
+        this.props._updateTimestamp(this.props.selectedFile, Date.now())
+    }
+
+
+    dsaveFile = debounce(this.saveFile, 1000, {leaading: true})
 
 
     exportFile = () => {
@@ -172,7 +208,7 @@ class MyEditor extends Component {
 
     // _updateTitle = (event) => {
     //     const title = event.target.value != ''? event.target.value : 'Untitled'
-    //     this.props.updateTitle(this.props.selectedFile, title)
+    //     throttle(() => this.props.updateTitle(this.props.selectedFile, title), 100)
     // }
 
 
@@ -291,31 +327,23 @@ class MyEditor extends Component {
         const {data, selectedFile} = this.props
         const title = data.get(selectedFile)? data.get(selectedFile).name : 'Untitled'
 
-        if (selectedFile != '0') {
-            return (
-                <div className='editorRoot'>
-                    <div className='content' onClick={() => this.refs.editor.focus()}>
-                        <Editor editorState = {this.state.editorState}
-                            onChange = {this.onChange}
-                            plugins = {plugins}
-                            onTab = {this.onTab}
-                            ref='editor'
-                            keyBindingFn = {this.keyBindingFn}
-                            handleKeyCommand = {this.handleKeyCommand}
-                            blockStyleFn = {this.blockStyleFn}
-                        />
-                        <EmojiSuggestions />
-                    </div>
+
+        return (
+            <div className='editorRoot'>
+                <div className='content' onClick={() => this.refs.editor.focus()}>
+                    <Editor editorState = {this.state.editorState}
+                        onChange = {this.onChange}
+                        plugins = {plugins}
+                        onTab = {this.onTab}
+                        ref='editor'
+                        keyBindingFn = {this.keyBindingFn}
+                        handleKeyCommand = {this.handleKeyCommand}
+                        blockStyleFn = {this.blockStyleFn}
+                    />
+                    <EmojiSuggestions />
                 </div>
-            )
-        }
-        else {
-            return (
-                <div className='editorRoot empty'>
-                    <span className='creaFile'>{"crea un file"}</span>
-                </div>
-            )
-        }
+            </div>
+        )
     }
 }
 
@@ -325,10 +353,12 @@ const mapStateToProps = ({selectedFile, selectedFolder, data}) => {
     return {selectedFile, selectedFolder, data}
 }
 
+
 const mapDispatchToProps = (dispatch) => {
     return {
         updateFile: (id, content) => dispatch(updateFileContent(id, content)),
         updateTitle: (id, title) => dispatch(updateFileTitle(id, title)),
+        _updateTimestamp: (id, timestamp) => dispatch(updateTimestamp(id, timestamp)),
         _newFile: (path) => dispatch(newFile('Untitled', path)),
         _newFolder: (path) => dispatch(newFolder('new folder', path)),
         _selectFile: (id) => dispatch(selectFile(id)),

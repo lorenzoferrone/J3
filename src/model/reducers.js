@@ -21,6 +21,9 @@ const data = (state=initialState.data, action) => {
         case 'update_file_title':
             return state.set(action.id, {...state.get(action.id), name: action.name})
 
+        case 'update_timestamp':
+            return state.set(action.id, {...state.get(action.id), lastmodified: action.timestamp})
+
         case 'new_file':
             // devo modificare per creare file sotto altre cartelle.
             // return state.set(action.id, {name: action.name, content: undefined, id: action.id})
@@ -38,7 +41,13 @@ const data = (state=initialState.data, action) => {
                     })
             }
 
-            return state.set(action.id, {name: action.name, content: undefined, id: action.id, path: path})
+            return state.set(action.id, {
+                name: action.name,
+                content: undefined,
+                id: action.id,
+                path: path,
+                lastmodified: Date.now()
+            })
 
         case 'delete_file':
             const newPath_delete = state.get(action.id).path

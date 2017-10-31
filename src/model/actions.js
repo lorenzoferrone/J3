@@ -37,6 +37,14 @@ export const updateFileTitle = (id, title) => {
     }
 }
 
+export const updateTimestamp = (id, timestamp) => {
+    return {
+        type: 'update_timestamp',
+        id: id,
+        timestamp: timestamp
+    }
+}
+
 export const newFile = (title='Untitled', path=['root']) => {
     const id = genKey()
     return {

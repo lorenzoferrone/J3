@@ -1,3 +1,12 @@
+.timestamp {
+    font-size: 8pt;
+    color: lightgrey;
+}
+
+/*.nodeName {
+    font-weight: 500
+}*/
+
 .sidebarRootFile {
     height: 100%;
     overflow: auto;
@@ -48,6 +57,7 @@
 
 
 /*nota: height è 19 + 2*transform, e transform è il padding su element (top e bottom)*/
+/*va modificata perché ho aggiunto il timestamp*/
 .activefile::before {
     transform: translate(0px, -10px);
     content: '';

@@ -55,6 +55,7 @@ const nodeComponent = (
             }
             const action = _newFolder(path)
             _selectFolder(action.id)
+            setTimeout(_selectFile('0'), 0)
         }
     }))
 

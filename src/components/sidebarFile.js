@@ -12,6 +12,29 @@ import dirTree from 'directory-tree'
 const {remote} = require('electron')
 const {Menu, MenuItem} = remote
 
+// utilities per il calcolo della data da mostrare:
+const isToday = timestamp => {
+    const today = new Date()
+    const time = new Date(timestamp)
+    return (
+        today.getFullYear() == time.getFullYear() &&
+        today.getMonth() == time.getMonth() &&
+        today.getDay() == time.getDay()
+    )
+}
+
+const showDate = (timestamp) => {
+    const time = new Date(timestamp)
+    if (isToday(timestamp)) {
+        return time.getHours() + ":" + time.getMinutes()
+    }
+
+    else {
+        return time.getDay() + "/" + time.getMonth() + "/" + time.getFullYear()
+    }
+}
+
+
 
 const nodeComponent = (nodes, node, onNodeClick, selectedFileId, _deleteFile) => {
     const active = node.id == selectedFileId ? 'activeFile' : ''
@@ -68,6 +91,7 @@ const nodeComponent = (nodes, node, onNodeClick, selectedFileId, _deleteFile) =>
                 onContextMenu={(e) => menu.popup(remote.getCurrentWindow())}>
                 <span>
                     {node.name}
+
                 </span>
                 <span className='deleteButton'
                       onClick={(e) => deleteNode(e)}>x</span>
